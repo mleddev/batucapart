@@ -3,6 +3,7 @@ import { songs } from './songs/index.js';
 import { withTimes } from './songs/withTimes.js';
 import { loadStems } from './loadStems.js';
 import { Player } from './engine/player.js';
+import { unlockAudio } from './unlockAudio.js';
 
 const ctx = new AudioContext(); // reste suspendu jusqu'au premier appui sur Lecture
 
@@ -193,6 +194,7 @@ function mountSong(root, song, stems, gen) {
   }
 
   async function togglePlay() {
+    unlockAudio(); // iPhone : doit partir d'un geste de l'utilisateur
     if (player.playing) {
       player.pause();
       setPlaying(false);
