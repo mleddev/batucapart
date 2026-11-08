@@ -1,0 +1,135 @@
+:root {
+  --bg: #f6f4f1;
+  --surface: #ffffff;
+  --fg: #1d1a1a;
+  --muted: #6b6560;
+  --line: #e1dcd6;
+  --accent: #c8321f;
+  --accent-fg: #ffffff;
+  --accent-soft: #f7dfd9;
+  --solo: #2f7d4f;
+  --solo-soft: #dcefe3;
+  --font: 'Avenir Next', 'Helvetica Neue', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16130f;
+    --surface: #201c18;
+    --fg: #f1ece6;
+    --muted: #a39b92;
+    --line: #38322b;
+    --accent: #ef6a52;
+    --accent-fg: #1a0e0b;
+    --accent-soft: #3a1f19;
+    --solo: #6cc08c;
+    --solo-soft: #1c3025;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  padding: max(20px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+    max(40px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.song-grid { display: flex; flex-direction: column; gap: 20px; }
+.song-grid > .song { margin: 0; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 1.6rem; letter-spacing: -0.01em; }
+h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.song, .song-title { color: var(--muted); font-size: 0.9rem; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+
+/* Transport */
+.transport { display: flex; align-items: center; gap: 14px; }
+.play {
+  flex: none; width: 56px; height: 56px; border-radius: 50%; border: 0;
+  background: var(--accent); color: var(--accent-fg); display: grid; place-items: center;
+}
+.play svg { width: 22px; height: 22px; fill: currentColor; }
+.timeline { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.times { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+input[type='range'] { width: 100%; accent-color: var(--accent); margin: 0; }
+
+/* Sections */
+.strip { position: relative; display: flex; gap: 3px; margin-top: 14px; }
+.strip button {
+  min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: 6px;
+  padding: 8px 6px; text-align: left; display: flex; flex-direction: column; gap: 2px; overflow: hidden;
+}
+.strip button .name { font-weight: 600; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.strip button .len { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+.strip button[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
+.strip button.current .name::before { content: '▸ '; color: var(--accent); }
+.playhead { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--accent); border-radius: 1px; pointer-events: none; }
+
+.loop-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 14px; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 0.9rem; }
+.toggle[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.field { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--muted); }
+select { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; color: var(--fg); }
+.hint { margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); }
+
+/* Tempo + métronome */
+.tempo-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tempo-row .slider { flex: 1 1 200px; min-width: 0; }
+.tempo-value { font-family: var(--mono); font-size: 0.9rem; min-width: 11ch; }
+.link { background: none; border: 0; color: var(--accent); padding: 4px; font-size: 0.85rem; text-decoration: underline; }
+
+/* Instruments */
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row .vol { flex: 1 0 100%; order: 1; height: 24px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); transition: opacity 0.15s; }
+.row.silent { opacity: 0.45; }
+.row .label { flex: 1; font-weight: 600; min-width: 0; }
+.chip {
+  width: 44px; height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+  font-weight: 700; font-size: 0.85rem;
+}
+.chip.mute[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.chip.solo[aria-pressed='true'] { background: var(--solo); border-color: var(--solo); color: var(--accent-fg); }
+.rows-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+footer { color: var(--muted); font-size: 0.8rem; }
+
+/* Mobile : le lecteur reste collé en bas de l'écran */
+@media (max-width: 899px) {
+  .p-transport {
+    order: 99; position: sticky; bottom: 0; z-index: 10;
+    margin: 0 -16px; border-radius: 12px 12px 0 0; border-width: 1px 0 0;
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 16px rgb(0 0 0 / 0.12);
+  }
+  body { padding-bottom: 0; }
+  .app { padding-bottom: 0; }
+  footer { order: 100; padding-bottom: 20px; }
+}
+
+/* Bureau : deux colonnes, lecteur / sections / tempo à gauche, instruments à droite */
+@media (min-width: 900px) {
+  .app { max-width: 1180px; }
+  .song-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto repeat(3, min-content) 1fr;
+    gap: 20px; align-items: start;
+  }
+  .song-grid > .song, .song-grid > footer, .song-grid > .hint { grid-column: 1 / -1; }
+  .p-transport, .p-sections, .p-tempo { grid-column: 1; }
+  .p-mix { grid-column: 2; grid-row: 2 / span 4; }
+  .panel { padding: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .row { transition: none; } }
