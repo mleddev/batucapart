@@ -8,5 +8,6 @@ export function withTimes(song) {
     cursor += section.bars * barSeconds;
     return { ...section, start, end: cursor };
   });
-  return { ...song, barSeconds, startAt, sections, duration: cursor };
+  // `sectionsEnd` : fin de la dernière section ; `duration` y ajoute la résonance finale (`tail`).
+  return { ...song, barSeconds, startAt, sections, sectionsEnd: cursor, duration: cursor + (song.tail ?? 0) };
 }

@@ -68,6 +68,8 @@ function mountSong(root, song, stems, gen) {
     seeking: false,
   };
 
+  const maxBars = Math.max(...song.sections.map((s) => s.bars));
+
   root.innerHTML = `
     <p class="song">${song.bpm} BPM · ${song.beatsPerBar}/4 · ${fmt(song.duration)}</p>
 
@@ -83,17 +85,28 @@ function mountSong(root, song, stems, gen) {
 
     <section class="panel p-sections" aria-label="Sections">
       <h2>Sections</h2>
-      <div class="strip" id="strip">
+      <div class="map" id="map" aria-hidden="true">
         ${song.sections
-          .map(
-            (s, i) => `<button type="button" data-section="${i}" aria-pressed="false" style="flex:${s.bars} 1 0">
-              <span class="name">${s.name}</span>
-              <span class="len">${s.bars} mes.</span>
-            </button>`,
-          )
+          .map((s, i) => `<span class="seg k-${s.kind ?? 'groove'}" data-section="${i}" style="flex:${s.bars} 1 0"></span>`)
           .join('')}
         <div class="playhead" id="playhead"></div>
       </div>
+      <ul class="legend" aria-hidden="true">
+        <li class="k-groove">Rythme</li><li class="k-montee">Montée</li><li class="k-break">Break</li>
+      </ul>
+      <ol class="sections" id="strip">
+        ${song.sections
+          .map(
+            (s, i) => `<li><button type="button" data-section="${i}" aria-pressed="false" class="k-${s.kind ?? 'groove'}">
+              <span class="text">
+                <span class="name">${s.name}</span>
+                ${s.detail ? `<span class="detail">${s.detail}</span>` : ''}
+              </span>
+              <span class="track" aria-hidden="true"><span class="fill" style="width:${((s.bars / maxBars) * 100).toFixed(1)}%"></span></span>
+            </button></li>`,
+          )
+          .join('')}
+      </ol>
       <div class="loop-controls">
         <button type="button" class="toggle" id="loop" aria-pressed="false">Boucler la section</button>
       </div>
@@ -168,6 +181,9 @@ function mountSong(root, song, stems, gen) {
     strip.querySelectorAll('button').forEach((b) => {
       b.setAttribute('aria-pressed', String(Number(b.dataset.section) === state.section));
     });
+    root.querySelectorAll('.seg').forEach((seg) => {
+      seg.classList.toggle('selected', Number(seg.dataset.section) === state.section);
+    });
     loopBtn.setAttribute('aria-pressed', String(state.loop));
   }
 
@@ -215,15 +231,18 @@ function mountSong(root, song, stems, gen) {
     state.seeking = false;
   });
 
-  strip.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-section]');
+  // La liste (boutons) et la carte du morceau (segments, souris / doigt seulement) choisissent une section.
+  const onSectionClick = (e) => {
+    const btn = e.target.closest('[data-section]');
     if (!btn) return;
     state.section = Number(btn.dataset.section);
     applyLoop();
     const start = state.loop ? loopRange().start : song.sections[state.section].start;
     player.seek(start);
     renderSections();
-  });
+  };
+  strip.addEventListener('click', onSectionClick);
+  $('#map').addEventListener('click', onSectionClick);
 
   loopBtn.addEventListener('click', () => {
     if (state.section === null) {
@@ -285,11 +304,11 @@ function mountSong(root, song, stems, gen) {
     const pos = player.position;
     if (!state.seeking) seek.value = pos;
     now.textContent = fmt(pos);
-    const span = song.duration - song.startAt;
+    const span = song.sectionsEnd - song.startAt;
     playhead.style.left = `${Math.min(100, Math.max(0, ((pos - song.startAt) / span) * 100))}%`;
     const currentSection = sectionAt(pos);
-    strip
-      .querySelectorAll('button')
+    root
+      .querySelectorAll('[data-section]')
       .forEach((b) => b.classList.toggle('current', Number(b.dataset.section) === currentSection));
     requestAnimationFrame(frame);
   }

@@ -4,6 +4,7 @@ Prototype d'un lecteur pour travailler les morceaux d'une batucada : mute / solo
 tempo ajustable sans changer la hauteur, métronome, boucle sur une section.
 
 ```bash
+# Node 20.19 ou plus récent (par ex. `nvm use 22`)
 npm install
 npm run dev     # http://localhost:5173
 npm run build   # produit dist/
