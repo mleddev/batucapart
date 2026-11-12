@@ -14,6 +14,8 @@ const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v1
 const restartIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3v16H5zM20 4.5v15L9 12z"/></svg>';
 const mixIcon =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2.2" /><circle cx="9" cy="17" r="2.2" /></svg>';
+const loopIcon =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3l3 3-3 3" /><path d="M4 11V9a3 3 0 0 1 3-3h13" /><path d="M7 21l-3-3 3-3" /><path d="M20 13v2a3 3 0 0 1-3 3H4" /></svg>';
 const closeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>';
 
 document.querySelector('#app').innerHTML = `
@@ -86,6 +88,7 @@ function mountSong(root, song, stems, gen) {
               </button>
               <button type="button" class="round" id="restart" aria-label="Retour au début">${restartIcon}</button>
               <button type="button" class="play" id="play" aria-label="Lecture">${playIcon}</button>
+              <button type="button" class="round loop-btn" id="loop-current" aria-pressed="false" aria-label="Boucler la section en cours">${loopIcon}</button>
               <button type="button" class="round mix-btn" id="open-mix" aria-haspopup="dialog" aria-label="Réglages des instruments">
                 ${mixIcon}<span class="dot" id="mix-dot" hidden></span>
               </button>
@@ -210,6 +213,7 @@ function mountSong(root, song, stems, gen) {
       seg.classList.toggle('selected', Number(seg.dataset.section) === looped);
     });
     loopBtn.setAttribute('aria-pressed', String(state.loop));
+    $('#loop-current').setAttribute('aria-pressed', String(state.loop));
   }
 
   // Remplissage du rail des curseurs jusqu'au bouton (Chrome / Safari ; Firefox le fait seul).
@@ -323,15 +327,20 @@ function mountSong(root, song, stems, gen) {
   };
   strip.addEventListener('click', onSectionClick);
 
-  loopBtn.addEventListener('click', () => {
+  // Active / coupe la boucle sur la section choisie, ou à défaut sur la section en cours.
+  // `restart` : repartir du début de la section (bouton sous la liste) ; sinon la lecture continue
+  // là où elle en est et revient au début de la section en arrivant à sa fin (bouton du lecteur).
+  function toggleLoop(restart) {
     if (state.section === null) {
       state.section = Math.max(0, sectionAt(player.position));
     }
     state.loop = !state.loop;
     applyLoop();
-    if (state.loop) player.seek(loopRange().start);
+    if (state.loop && restart) player.seek(loopRange().start);
     renderSections();
-  });
+  }
+  loopBtn.addEventListener('click', () => toggleLoop(true));
+  $('#loop-current').addEventListener('click', () => toggleLoop(false));
 
   tempo.addEventListener('input', () => {
     player.setTempo(Number(tempo.value) / 100);
