@@ -70,7 +70,6 @@ function mountSong(root, song, stems, gen) {
   root.innerHTML = `
     <section class="panel p-transport" aria-label="Lecture">
       <div class="transport">
-        <div class="timeline">
           <!-- Frise du morceau : un segment par section, largeur proportionnelle à sa durée. On y déplace la lecture. -->
           <div class="map" id="map" role="slider" tabindex="0" aria-label="Position dans le morceau"
             aria-valuemin="0" aria-valuemax="${Math.round(song.sectionsEnd)}" aria-valuenow="0" aria-valuetext="0:00">
@@ -79,33 +78,34 @@ function mountSong(root, song, stems, gen) {
               .join('')}
             <div class="playhead" id="playhead"></div>
           </div>
-          <div class="times">
-            <span id="now">0:00</span>
-            <ul class="legend" aria-hidden="true">
-              <li class="k-groove">Rythme</li><li class="k-montee">Montée</li><li class="k-break">Break</li>
-            </ul>
-            <span>${fmt(song.duration)}</span>
+          <div class="controls">
+            <span class="time" id="now">0:00</span>
+            <div class="buttons">
+              <button type="button" class="restart" id="restart" aria-label="Retour au début">${restartIcon}</button>
+              <button type="button" class="play" id="play" aria-label="Lecture">${playIcon}</button>
+            </div>
+            <span class="time end">${fmt(song.duration)}</span>
           </div>
-        </div>
-        <button type="button" class="restart" id="restart" aria-label="Retour au début">${restartIcon}</button>
-        <button type="button" class="play" id="play" aria-label="Lecture">${playIcon}</button>
       </div>
     </section>
 
     <section class="panel p-sections" aria-label="Sections">
-      <h2>Sections</h2>
-      <ol class="sections" id="strip">
+      <ol class="sections" id="strip" aria-label="Sections, dans l'ordre du morceau">
         ${song.sections
           .map(
-            (s, i) => `<li><button type="button" data-section="${i}" aria-pressed="false" class="k-${s.kind ?? 'groove'}">
+            (s, i) => `<li class="k-${s.kind ?? 'groove'}"><button type="button" data-section="${i}" aria-pressed="false">
               <span class="text">
                 <span class="name">${s.name}</span>
                 ${s.detail ? `<span class="detail">${s.detail}</span>` : ''}
               </span>
+              <span class="start">${fmt(s.start)}</span>
             </button></li>`,
           )
           .join('')}
       </ol>
+      <ul class="legend" aria-hidden="true">
+        <li class="k-groove">Rythme</li><li class="k-montee">Montée</li><li class="k-break">Break</li>
+      </ul>
       <div class="loop-controls">
         <button type="button" class="toggle" id="loop" aria-pressed="false">Boucler la section</button>
       </div>

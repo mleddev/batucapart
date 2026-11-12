@@ -65,7 +65,12 @@ h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transfor
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
 
 /* Transport */
-.transport { display: flex; align-items: center; gap: 14px; }
+/* Frise sur toute la largeur ; dessous : temps écoulé, boutons au centre, durée totale */
+.transport { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+.controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+.controls .buttons { display: flex; align-items: center; gap: 14px; }
+.controls .time { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
+.controls .end { text-align: right; }
 .play {
   flex: none; width: 56px; height: 56px; border-radius: 50%; border: 0;
   background: var(--accent); color: var(--accent-fg); display: grid; place-items: center;
@@ -76,9 +81,6 @@ h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transfor
   background: var(--bg); color: var(--fg); display: grid; place-items: center;
 }
 .restart svg { width: 18px; height: 18px; fill: currentColor; }
-.timeline { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.times { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
-.times .legend { margin: 0; font-family: var(--font); justify-content: center; }
 input[type='range'] { width: 100%; accent-color: var(--accent); margin: 0; }
 
 /* Sections */
@@ -90,16 +92,29 @@ input[type='range'] { width: 100%; accent-color: var(--accent); margin: 0; }
 .k-groove { --k: var(--k-groove); }
 .k-montee { --k: var(--k-montee); }
 .k-break { --k: var(--k-break); }
-.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 0.75rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 12px 0 0 24px; padding: 0; list-style: none; font-size: 0.75rem; color: var(--muted); }
 .legend li { display: inline-flex; align-items: center; gap: 6px; }
-.legend li::before { content: ''; width: 10px; height: 10px; border-radius: 2px; background: var(--k); }
+.legend li::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--k); }
 
-/* Liste des sections */
-.sections { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+/* Liste des sections, dans l'ordre du morceau : un fil vertical les relie, une pastille par section
+   (couleur = type, comme sur la frise), heure de début à droite. */
+.sections { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.sections li { position: relative; padding-left: 24px; }
+.sections li::before {
+  content: ''; position: absolute; left: 7px; top: 0; bottom: -4px; width: 2px; background: var(--line);
+}
+.sections li:first-child::before { top: 50%; }
+.sections li:last-child::before { bottom: 50%; }
+.sections li::after {
+  content: ''; position: absolute; left: 3px; top: 50%; width: 10px; height: 10px; margin-top: -5px;
+  border-radius: 50%; background: var(--k); box-shadow: 0 0 0 3px var(--surface);
+}
+.sections li:has(.current)::after { left: 1px; width: 14px; height: 14px; margin-top: -7px; box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent); }
 .sections button {
-  width: 100%; display: block;
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 7px 10px; text-align: left;
 }
+.sections .start { flex: none; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
 .sections .text { display: flex; flex-direction: column; min-width: 0; }
 .sections .name { font-weight: 600; font-size: 0.9rem; }
 .sections .detail { font-size: 0.75rem; color: var(--muted); line-height: 1.3; }
