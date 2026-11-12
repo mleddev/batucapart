@@ -27,7 +27,7 @@ document.querySelector('#app').innerHTML = `
           ${songs.map((s) => `<option value="${s.id}">${s.title}</option>`).join('')}
         </select>`
           : songs[0].title
-      }</h1>
+      } <span class="by" id="song-by"></span></h1>
     </header>
     <div id="song" class="song-grid"></div>
   </div>
@@ -42,6 +42,7 @@ async function openSong(def) {
     current.player.dispose();
     current = null;
   }
+  document.querySelector('#song-by').textContent = def.author ? `par ${def.author}` : '';
   const root = document.querySelector('#song');
   root.innerHTML = '<p class="hint">Chargement…</p>';
   const song = withTimes(def);

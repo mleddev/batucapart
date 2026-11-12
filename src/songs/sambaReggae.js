@@ -6,6 +6,7 @@
 export const sambaReggae = {
   id: 'samba-reggae',
   title: 'Samba Reggae',
+  author: 'OBATIM',
   bpm: 88,
   beatsPerBar: 4,
   // Délai de décodage des MP3 par Chrome (~25 ms, mesuré sur les exports GarageBand).

@@ -58,6 +58,7 @@ button { cursor: pointer; }
 .song-grid { display: flex; flex-direction: column; gap: 20px; }
 header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 h1 { margin: 0; font-size: 1.6rem; letter-spacing: -0.01em; }
+h1 .by { font-size: 0.85rem; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 4px; white-space: nowrap; }
 h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .song-select {
   font-weight: inherit; font-size: inherit; letter-spacing: inherit; max-width: 100%;
