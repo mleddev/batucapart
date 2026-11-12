@@ -87,7 +87,11 @@ h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transfor
 .tempo-btn { width: auto; min-width: 44px; padding: 0 8px; white-space: nowrap; border-radius: 999px; font-family: var(--mono); font-size: 0.75rem; font-weight: 600; }
 .tempo-btn.changed { border-color: var(--accent); color: var(--accent); }
 .loop-btn[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
-.mix-btn .dot { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+/* Pastille posée sur le trait du cercle, en haut à droite (14,6 % = 1 - cos 45°, centrée par translate) */
+.mix-btn .dot {
+  position: absolute; top: 14.6%; right: 14.6%; width: 10px; height: 10px; transform: translate(50%, -50%);
+  border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface);
+}
 .mix-btn .dot[hidden] { display: none; }
 /* Curseurs (tempo, volumes) : rail épais et gros bouton rond, faciles à attraper au doigt */
 input[type='range'] {
