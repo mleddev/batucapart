@@ -126,6 +126,9 @@ input[type='range']::-moz-range-thumb {
 .legend li { display: inline-flex; align-items: center; gap: 6px; }
 .legend li::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--k); }
 
+/* La liste est posée directement sur le fond de la page, sans cadre autour */
+.panel.p-sections { background: none; border: 0; padding: 0; }
+
 /* Liste des sections, dans l'ordre du morceau : un fil vertical les relie, une pastille par section
    (couleur = type, comme sur la frise), heure de début à droite. */
 .sections { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -137,12 +140,12 @@ input[type='range']::-moz-range-thumb {
 .sections li:last-child::before { bottom: 50%; }
 .sections li::after {
   content: ''; position: absolute; left: 3px; top: 50%; width: 10px; height: 10px; margin-top: -5px;
-  border-radius: 50%; background: var(--k); box-shadow: 0 0 0 3px var(--surface);
+  border-radius: 50%; background: var(--k); box-shadow: 0 0 0 3px var(--bg);
 }
-.sections li:has(.current)::after { left: 1px; width: 14px; height: 14px; margin-top: -7px; box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent); }
+.sections li:has(.current)::after { left: 1px; width: 14px; height: 14px; margin-top: -7px; box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--accent); }
 .sections button {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 7px 10px; text-align: left;
+  border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 12px; text-align: left;
 }
 .sections .start { flex: none; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
 .sections .text { display: flex; flex-direction: column; min-width: 0; }
