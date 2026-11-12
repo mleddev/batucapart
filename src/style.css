@@ -8,6 +8,7 @@
   --accent-fg: #ffffff;
   --accent-soft: #f7dfd9;
   --progress-fill: var(--accent-soft);
+  --progress-border: var(--accent);
   --solo: #2f7d4f;
   --solo-soft: #dcefe3;
   --k-groove: #8a8178;
@@ -28,6 +29,7 @@
     --accent-fg: #1a0e0b;
     --accent-soft: #3a1f19;
     --progress-fill: #5a271d; /* plus marqué que accent-soft sur fond sombre */
+    --progress-border: #ffffff; /* le cadre blanchit au rythme du remplissage */
     --solo: #6cc08c;
     --solo-soft: #1c3025;
     --k-groove: #8f867c;
@@ -159,8 +161,11 @@ input[type='range']::-moz-range-thumb {
 .sections .loop-tag { display: none; flex: none; margin-left: auto; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-fg); font-size: 0.7rem; font-weight: 700; }
 .sections li.looping .loop-tag { display: inline-block; }
 .sections button.current {
-  border-color: var(--accent);
-  background: linear-gradient(to right, var(--progress-fill) var(--progress, 0%), var(--surface) var(--progress, 0%));
+  /* Deux couches : le fond (padding-box) et le cadre (border-box) progressent ensemble. */
+  border-color: transparent;
+  background:
+    linear-gradient(to right, var(--progress-fill) var(--progress, 0%), var(--surface) var(--progress, 0%)) padding-box,
+    linear-gradient(to right, var(--progress-border) var(--progress, 0%), var(--accent) var(--progress, 0%)) border-box;
   box-shadow: inset 5px 0 0 var(--accent);
   padding-left: 16px;
 }
