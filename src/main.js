@@ -84,7 +84,7 @@ function mountSong(root, song, stems, gen) {
             <span class="time" id="now">0:00</span>
             <div class="buttons">
               <button type="button" class="round tempo-btn" id="open-tempo" aria-haspopup="dialog" aria-label="Tempo">
-                <span id="tempo-badge">100 %</span>
+                <span id="tempo-badge">100%</span>
               </button>
               <button type="button" class="round" id="restart" aria-label="Retour au début">${restartIcon}</button>
               <button type="button" class="play" id="play" aria-label="Lecture">${playIcon}</button>
@@ -131,7 +131,7 @@ function mountSong(root, song, stems, gen) {
         </div>
         <div class="tempo-actions">
           <button type="button" class="toggle" id="metro" aria-pressed="false">Métronome</button>
-          <button type="button" class="link" id="tempo-reset">Revenir à 100 %</button>
+          <button type="button" class="link" id="tempo-reset">Revenir à 100%</button>
         </div>
       </div>
     </dialog>
@@ -232,10 +232,10 @@ function mountSong(root, song, stems, gen) {
   function renderTempo() {
     paintRanges();
     const pct = Number(tempo.value);
-    tempoValue.textContent = `${pct} % · ${Math.round((song.bpm * pct) / 100)} BPM`;
-    $('#tempo-badge').textContent = `${pct} %`;
+    tempoValue.textContent = `${pct}% · ${Math.round((song.bpm * pct) / 100)} BPM`;
+    $('#tempo-badge').textContent = `${pct}%`;
     $('#open-tempo').classList.toggle('changed', pct !== 100);
-    $('#open-tempo').setAttribute('aria-label', `Tempo : ${pct} %`);
+    $('#open-tempo').setAttribute('aria-label', `Tempo : ${pct}%`);
   }
 
   function setPlaying(on) {
