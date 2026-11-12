@@ -116,10 +116,6 @@ function mountSong(root, song, stems, gen) {
       <ul class="legend" aria-hidden="true">
         <li class="k-groove">Rythme</li><li class="k-montee">Montée</li><li class="k-break">Break</li>
       </ul>
-      <div class="loop-controls">
-        <button type="button" class="toggle" id="loop" aria-pressed="false">Boucler la section</button>
-      </div>
-      <p class="hint" id="loop-hint">Choisis une section pour la travailler.</p>
     </section>
 
     <!-- Bottom sheets (fenêtres qui montent du bas de l'écran) -->
@@ -169,8 +165,6 @@ function mountSong(root, song, stems, gen) {
   const now = $('#now');
   const strip = $('#strip');
   const playhead = $('#playhead');
-  const loopBtn = $('#loop');
-  const loopHint = $('#loop-hint');
   const tempo = $('#tempo');
   const tempoValue = $('#tempo-value');
   const metro = $('#metro');
@@ -192,12 +186,8 @@ function mountSong(root, song, stems, gen) {
     if (state.loop && state.section !== null) {
       const range = loopRange();
       player.setLoop(range);
-      const bars = Number(((range.end - range.start) / song.barSeconds).toFixed(1));
-      loopHint.textContent = `Boucle de ${fmt(range.start)} à ${fmt(range.end)} · ${bars} mesures.`;
     } else {
       player.setLoop(null);
-      loopHint.textContent =
-        state.section === null ? 'Choisis une section pour la travailler.' : 'Active « Boucler la section » pour la répéter.';
     }
   }
 
@@ -212,7 +202,6 @@ function mountSong(root, song, stems, gen) {
     root.querySelectorAll('.seg').forEach((seg) => {
       seg.classList.toggle('selected', Number(seg.dataset.section) === looped);
     });
-    loopBtn.setAttribute('aria-pressed', String(state.loop));
     $('#loop-current').setAttribute('aria-pressed', String(state.loop));
   }
 
@@ -327,20 +316,17 @@ function mountSong(root, song, stems, gen) {
   };
   strip.addEventListener('click', onSectionClick);
 
-  // Active / coupe la boucle sur la section choisie, ou à défaut sur la section en cours.
-  // `restart` : repartir du début de la section (bouton sous la liste) ; sinon la lecture continue
-  // là où elle en est et revient au début de la section en arrivant à sa fin (bouton du lecteur).
-  function toggleLoop(restart) {
+  // Bouton boucle du lecteur : boucle sur la section choisie, ou à défaut sur la section en cours.
+  // La lecture continue là où elle en est et revient au début de la section en arrivant à sa fin.
+  function toggleLoop() {
     if (state.section === null) {
       state.section = Math.max(0, sectionAt(player.position));
     }
     state.loop = !state.loop;
     applyLoop();
-    if (state.loop && restart) player.seek(loopRange().start);
     renderSections();
   }
-  loopBtn.addEventListener('click', () => toggleLoop(true));
-  $('#loop-current').addEventListener('click', () => toggleLoop(false));
+  $('#loop-current').addEventListener('click', toggleLoop);
 
   tempo.addEventListener('input', () => {
     player.setTempo(Number(tempo.value) / 100);
