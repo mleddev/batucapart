@@ -52,11 +52,15 @@ button { cursor: pointer; }
 
 .app { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 .song-grid { display: flex; flex-direction: column; gap: 20px; }
-.song-grid > .song { margin: 0; }
 header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 h1 { margin: 0; font-size: 1.6rem; letter-spacing: -0.01em; }
 h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.song, .song-title { color: var(--muted); font-size: 0.9rem; }
+.song-select {
+  font-weight: inherit; font-size: inherit; letter-spacing: inherit; max-width: 100%;
+  border: 0; background: transparent; padding: 0 1.2em 0 0; border-radius: 0; appearance: none; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 0.45em center, right 0.15em center; background-size: 0.3em 0.3em; background-repeat: no-repeat;
+}
 
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
 
@@ -100,7 +104,6 @@ input[type='range'] { width: 100%; accent-color: var(--accent); margin: 0; }
 .loop-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 14px; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 0.9rem; }
 .toggle[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
-.field { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--muted); }
 select { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; color: var(--fg); }
 .hint { margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); }
 
@@ -143,12 +146,12 @@ footer { color: var(--muted); font-size: 0.8rem; }
 @media (min-width: 900px) {
   .app { max-width: 1180px; }
   .song-grid {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto repeat(3, min-content) 1fr;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: repeat(3, min-content) 1fr;
     gap: 20px; align-items: start;
   }
-  .song-grid > .song, .song-grid > footer, .song-grid > .hint { grid-column: 1 / -1; }
+  .song-grid > footer, .song-grid > .hint { grid-column: 1 / -1; }
   .p-transport, .p-sections, .p-tempo { grid-column: 1; }
-  .p-mix { grid-column: 2; grid-row: 2 / span 4; }
+  .p-mix { grid-column: 2; grid-row: 1 / span 4; }
   .panel { padding: 20px; }
 }
 

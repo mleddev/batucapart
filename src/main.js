@@ -15,16 +15,13 @@ const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v1
 document.querySelector('#app').innerHTML = `
   <div class="app">
     <header>
-      <h1>Batucapart</h1>
-      ${
+      <h1>${
         songs.length > 1
-          ? `<label class="field">Morceau
-        <select id="song-select" aria-label="Morceau">
+          ? `<select id="song-select" class="song-select" aria-label="Morceau">
           ${songs.map((s) => `<option value="${s.id}">${s.title}</option>`).join('')}
-        </select>
-      </label>`
-          : `<span class="song-title">${songs[0].title}</span>`
-      }
+        </select>`
+          : songs[0].title
+      }</h1>
     </header>
     <div id="song" class="song-grid"></div>
   </div>
@@ -69,8 +66,6 @@ function mountSong(root, song, stems, gen) {
   };
 
   root.innerHTML = `
-    <p class="song">${song.bpm} BPM · ${song.beatsPerBar}/4 · ${fmt(song.duration)}</p>
-
     <section class="panel p-transport" aria-label="Lecture">
       <div class="transport">
         <button class="play" id="play" aria-label="Lecture">${playIcon}</button>
