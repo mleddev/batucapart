@@ -107,6 +107,7 @@ function mountSong(root, song, stems, gen) {
                 <span class="name">${s.name}</span>
                 ${s.detail ? `<span class="detail">${s.detail}</span>` : ''}
               </span>
+              <span class="loop-tag">Boucle</span>
               <span class="start">${fmt(s.start)}</span>
             </button></li>`,
           )
@@ -174,9 +175,12 @@ function mountSong(root, song, stems, gen) {
   const tempoValue = $('#tempo-value');
   const metro = $('#metro');
 
+  // La position revient arrondie à l'échantillon inférieur : au début exact d'une section, elle tombe une
+  // fraction de milliseconde avant. La marge évite d'afficher alors la section précédente comme « en cours ».
+  const EDGE = 0.02;
   function sectionAt(seconds) {
     const last = song.sections.length - 1;
-    return song.sections.findIndex((s, i) => seconds < s.end || i === last);
+    return song.sections.findIndex((s, i) => seconds < s.end - EDGE || i === last);
   }
 
   function loopRange() {
@@ -201,13 +205,26 @@ function mountSong(root, song, stems, gen) {
     strip.querySelectorAll('button').forEach((b) => {
       b.setAttribute('aria-pressed', String(Number(b.dataset.section) === state.section));
     });
+    // Seule la section en boucle est signalée (étiquette « Boucle » et contour sur la frise) ;
+    // le reste du temps, la section choisie est simplement celle en cours.
+    const looped = state.loop ? state.section : null;
+    strip.querySelectorAll('li').forEach((li, i) => li.classList.toggle('looping', i === looped));
     root.querySelectorAll('.seg').forEach((seg) => {
-      seg.classList.toggle('selected', Number(seg.dataset.section) === state.section);
+      seg.classList.toggle('selected', Number(seg.dataset.section) === looped);
     });
     loopBtn.setAttribute('aria-pressed', String(state.loop));
   }
 
+  // Remplissage du rail des curseurs jusqu'au bouton (Chrome / Safari ; Firefox le fait seul).
+  function paintRanges() {
+    root.querySelectorAll('input[type="range"]').forEach((input) => {
+      const ratio = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min));
+      input.style.setProperty('--fill', `${(ratio * 100).toFixed(1)}%`);
+    });
+  }
+
   function renderMix() {
+    paintRanges();
     const anySolo = player.solo.size > 0;
     // Pastille sur le bouton des réglages quand le mix n'est plus celui d'origine.
     const changed = anySolo || player.muted.size > 0 || [...player.volumes.values()].some((v) => v !== 1);
@@ -223,6 +240,7 @@ function mountSong(root, song, stems, gen) {
   }
 
   function renderTempo() {
+    paintRanges();
     const pct = Number(tempo.value);
     tempoValue.textContent = `${pct} % · ${Math.round((song.bpm * pct) / 100)} BPM`;
     $('#tempo-badge').textContent = `${pct} %`;
@@ -401,7 +419,7 @@ function mountSong(root, song, stems, gen) {
     // Sans boucle, la section choisie se désélectionne dès que la lecture en sort.
     if (!state.loop && state.section !== null) {
       const chosen = song.sections[state.section];
-      if (pos >= chosen.end || pos < chosen.start - 0.05) {
+      if (pos >= chosen.end - EDGE || pos < chosen.start - 0.05) {
         state.section = null;
         renderSections();
         applyLoop();
