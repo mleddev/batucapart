@@ -68,8 +68,6 @@ function mountSong(root, song, stems, gen) {
     seeking: false,
   };
 
-  const maxBars = Math.max(...song.sections.map((s) => s.bars));
-
   root.innerHTML = `
     <p class="song">${song.bpm} BPM · ${song.beatsPerBar}/4 · ${fmt(song.duration)}</p>
 
@@ -102,7 +100,6 @@ function mountSong(root, song, stems, gen) {
                 <span class="name">${s.name}</span>
                 ${s.detail ? `<span class="detail">${s.detail}</span>` : ''}
               </span>
-              <span class="track" aria-hidden="true"><span class="fill" style="width:${((s.bars / maxBars) * 100).toFixed(1)}%"></span></span>
             </button></li>`,
           )
           .join('')}
