@@ -7,6 +7,7 @@
   --accent: #c8321f;
   --accent-fg: #ffffff;
   --accent-soft: #f7dfd9;
+  --progress-fill: var(--accent-soft);
   --solo: #2f7d4f;
   --solo-soft: #dcefe3;
   --k-groove: #8a8178;
@@ -26,6 +27,7 @@
     --accent: #ef6a52;
     --accent-fg: #1a0e0b;
     --accent-soft: #3a1f19;
+    --progress-fill: #5a271d; /* plus marqué que accent-soft sur fond sombre */
     --solo: #6cc08c;
     --solo-soft: #1c3025;
     --k-groove: #8f867c;
@@ -158,7 +160,7 @@ input[type='range']::-moz-range-thumb {
 .sections li.looping .loop-tag { display: inline-block; }
 .sections button.current {
   border-color: var(--accent);
-  background: linear-gradient(to right, var(--accent-soft) var(--progress, 0%), var(--surface) var(--progress, 0%));
+  background: linear-gradient(to right, var(--progress-fill) var(--progress, 0%), var(--surface) var(--progress, 0%));
   box-shadow: inset 5px 0 0 var(--accent);
   padding-left: 16px;
 }
