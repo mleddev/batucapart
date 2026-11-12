@@ -12,6 +12,9 @@ const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(
 const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
 const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
 const restartIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3v16H5zM20 4.5v15L9 12z"/></svg>';
+const mixIcon =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2.2" /><circle cx="9" cy="17" r="2.2" /></svg>';
+const closeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>';
 
 document.querySelector('#app').innerHTML = `
   <div class="app">
@@ -81,8 +84,14 @@ function mountSong(root, song, stems, gen) {
           <div class="controls">
             <span class="time" id="now">0:00</span>
             <div class="buttons">
-              <button type="button" class="restart" id="restart" aria-label="Retour au début">${restartIcon}</button>
+              <button type="button" class="round tempo-btn" id="open-tempo" aria-haspopup="dialog" aria-label="Tempo">
+                <span id="tempo-badge">100 %</span>
+              </button>
+              <button type="button" class="round" id="restart" aria-label="Retour au début">${restartIcon}</button>
               <button type="button" class="play" id="play" aria-label="Lecture">${playIcon}</button>
+              <button type="button" class="round mix-btn" id="open-mix" aria-haspopup="dialog" aria-label="Réglages des instruments">
+                ${mixIcon}<span class="dot" id="mix-dot" hidden></span>
+              </button>
             </div>
             <span class="time end">${fmt(song.duration)}</span>
           </div>
@@ -112,33 +121,45 @@ function mountSong(root, song, stems, gen) {
       <p class="hint" id="loop-hint">Choisis une section pour la travailler.</p>
     </section>
 
-    <section class="panel p-tempo" aria-label="Tempo">
-      <h2>Tempo</h2>
-      <div class="tempo-row">
-        <input class="slider" type="range" id="tempo" min="40" max="120" step="5" value="100" aria-label="Tempo en pourcentage" />
-        <span class="tempo-value" id="tempo-value"></span>
-        <button type="button" class="link" id="tempo-reset">100 %</button>
-        <button type="button" class="toggle" id="metro" aria-pressed="false">Métronome</button>
+    <!-- Bottom sheets (fenêtres qui montent du bas de l'écran) -->
+    <dialog class="sheet" id="sheet-tempo" aria-labelledby="sheet-tempo-title">
+      <div class="sheet-body">
+        <div class="sheet-head">
+          <h2 id="sheet-tempo-title">Tempo</h2>
+          <button type="button" class="round close" data-close aria-label="Fermer">${closeIcon}</button>
+        </div>
+        <div class="tempo-row">
+          <input class="slider" type="range" id="tempo" min="40" max="120" step="5" value="100" aria-label="Tempo en pourcentage" />
+          <span class="tempo-value" id="tempo-value"></span>
+        </div>
+        <div class="tempo-actions">
+          <button type="button" class="toggle" id="metro" aria-pressed="false">Métronome</button>
+          <button type="button" class="link" id="tempo-reset">Revenir à 100 %</button>
+        </div>
       </div>
-    </section>
+    </dialog>
 
-    <section class="panel p-mix" aria-label="Instruments">
-      <h2>Instruments</h2>
-      <div class="rows" id="rows">
-        ${song.instruments
-          .map(
-            (inst) => `<div class="row" data-id="${inst.id}">
-              <span class="label">${inst.label}</span>
-              <button type="button" class="chip mute" data-act="mute" aria-pressed="false" aria-label="Couper ${inst.label}">M</button>
-              <button type="button" class="chip solo" data-act="solo" aria-pressed="false" aria-label="Solo ${inst.label}">S</button>
-              <input class="vol" type="range" min="0" max="100" step="1" value="100" data-act="volume" aria-label="Volume ${inst.label}" />
-            </div>`,
-          )
-          .join('')}
+    <dialog class="sheet" id="sheet-mix" aria-labelledby="sheet-mix-title">
+      <div class="sheet-body">
+        <div class="sheet-head">
+          <h2 id="sheet-mix-title">Instruments</h2>
+          <button type="button" class="round close" data-close aria-label="Fermer">${closeIcon}</button>
+        </div>
+        <div class="rows" id="rows">
+          ${song.instruments
+            .map(
+              (inst) => `<div class="row" data-id="${inst.id}">
+                <span class="label">${inst.label}</span>
+                <button type="button" class="chip mute" data-act="mute" aria-pressed="false" aria-label="Couper ${inst.label}">M</button>
+                <button type="button" class="chip solo" data-act="solo" aria-pressed="false" aria-label="Solo ${inst.label}">S</button>
+                <input class="vol" type="range" min="0" max="100" step="1" value="100" data-act="volume" aria-label="Volume ${inst.label}" />
+              </div>`,
+            )
+            .join('')}
+        </div>
+        <div class="rows-actions"><button type="button" class="link" id="reset-mix">Tout réinitialiser</button></div>
       </div>
-      <div class="rows-actions"><button type="button" class="link" id="reset-mix">Tout réinitialiser</button></div>
-    </section>
-
+    </dialog>
   `;
 
   const $ = (sel) => root.querySelector(sel);
@@ -188,6 +209,9 @@ function mountSong(root, song, stems, gen) {
 
   function renderMix() {
     const anySolo = player.solo.size > 0;
+    // Pastille sur le bouton des réglages quand le mix n'est plus celui d'origine.
+    const changed = anySolo || player.muted.size > 0 || [...player.volumes.values()].some((v) => v !== 1);
+    $('#mix-dot').hidden = !changed;
     root.querySelectorAll('.row').forEach((row) => {
       const id = row.dataset.id;
       const muted = player.muted.has(id);
@@ -201,6 +225,9 @@ function mountSong(root, song, stems, gen) {
   function renderTempo() {
     const pct = Number(tempo.value);
     tempoValue.textContent = `${pct} % · ${Math.round((song.bpm * pct) / 100)} BPM`;
+    $('#tempo-badge').textContent = `${pct} %`;
+    $('#open-tempo').classList.toggle('changed', pct !== 100);
+    $('#open-tempo').setAttribute('aria-label', `Tempo : ${pct} %`);
   }
 
   function setPlaying(on) {
@@ -320,6 +347,7 @@ function mountSong(root, song, stems, gen) {
     const slider = e.target.closest('input[data-act="volume"]');
     if (!slider) return;
     player.setVolume(slider.closest('.row').dataset.id, Number(slider.value) / 100);
+    renderMix();
   });
 
   $('#reset-mix').addEventListener('click', () => {
@@ -331,6 +359,16 @@ function mountSong(root, song, stems, gen) {
       s.value = '100';
     });
     renderMix();
+  });
+
+  // Bottom sheets : ouverture par les boutons du lecteur ; fermeture par ×, Échap ou un appui à côté.
+  const openSheet = (id) => $(id).showModal();
+  $('#open-tempo').addEventListener('click', () => openSheet('#sheet-tempo'));
+  $('#open-mix').addEventListener('click', () => openSheet('#sheet-mix'));
+  root.querySelectorAll('dialog.sheet').forEach((dialog) => {
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || e.target.closest('[data-close]')) dialog.close();
+    });
   });
 
   player.onEnded = () => setPlaying(false);

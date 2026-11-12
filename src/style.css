@@ -68,7 +68,7 @@ h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transfor
 /* Frise sur toute la largeur ; dessous : temps écoulé, boutons au centre, durée totale */
 .transport { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
 .controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
-.controls .buttons { display: flex; align-items: center; gap: 14px; }
+.controls .buttons { display: flex; align-items: center; gap: 10px; }
 .controls .time { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
 .controls .end { text-align: right; }
 .play {
@@ -76,11 +76,18 @@ h2 { margin: 0 0 10px; font-size: 0.75rem; letter-spacing: 0.08em; text-transfor
   background: var(--accent); color: var(--accent-fg); display: grid; place-items: center;
 }
 .play svg { width: 22px; height: 22px; fill: currentColor; }
-.restart {
-  flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
-  background: var(--bg); color: var(--fg); display: grid; place-items: center;
+.round {
+  position: relative; flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+  background: var(--bg); color: var(--fg); display: grid; place-items: center; padding: 0;
 }
-.restart svg { width: 18px; height: 18px; fill: currentColor; }
+.round svg { width: 18px; height: 18px; fill: currentColor; }
+.mix-btn svg, .close svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.mix-btn svg { width: 22px; height: 22px; }
+/* Bouton tempo : affiche le pourcentage, en couleur quand il n'est pas à 100 % */
+.tempo-btn { width: auto; min-width: 44px; padding: 0 8px; border-radius: 999px; font-family: var(--mono); font-size: 0.75rem; font-weight: 600; }
+.tempo-btn.changed { border-color: var(--accent); color: var(--accent); }
+.mix-btn .dot { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+.mix-btn .dot[hidden] { display: none; }
 input[type='range'] { width: 100%; accent-color: var(--accent); margin: 0; }
 
 /* Sections */
@@ -141,7 +148,23 @@ select { background: var(--bg); border: 1px solid var(--line); border-radius: 6p
 .hint { margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); }
 
 /* Tempo + métronome */
-.tempo-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tempo-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 8px 0; }
+.tempo-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+
+/* Bottom sheets */
+.sheet {
+  margin: auto auto 0; width: 100%; max-width: 640px; max-height: 85dvh; padding: 0; border: 0;
+  border-radius: 16px 16px 0 0; background: var(--surface); color: var(--fg);
+  box-shadow: 0 -8px 30px rgb(0 0 0 / 0.2);
+}
+.sheet::backdrop { background: rgb(0 0 0 / 0.35); }
+.sheet[open] { animation: sheet-up 0.22s ease-out; }
+@keyframes sheet-up { from { transform: translateY(100%); } }
+.sheet-body { padding: 8px 16px max(20px, env(safe-area-inset-bottom, 0px)); }
+.sheet-body::before { content: ''; display: block; width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 8px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sheet-head h2 { margin: 0; font-size: 1.1rem; letter-spacing: 0; text-transform: none; color: var(--fg); font-weight: 700; }
+.close { width: 36px; height: 36px; }
 .tempo-row .slider { flex: 1 1 200px; min-width: 0; }
 .tempo-value { font-family: var(--mono); font-size: 0.9rem; min-width: 11ch; }
 .link { background: none; border: 0; color: var(--accent); padding: 4px; font-size: 0.85rem; text-decoration: underline; }
@@ -175,22 +198,14 @@ footer { color: var(--muted); font-size: 0.8rem; }
   footer { order: 100; padding-bottom: 20px; }
 }
 
-/* Bureau : deux colonnes, lecteur / sections / tempo à gauche, instruments à droite */
+/* Bureau : une colonne, le lecteur reste collé en haut quand la page défile vers la section en cours */
 @media (min-width: 900px) {
-  .app { max-width: 1180px; }
-  .song-grid {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: repeat(3, min-content) 1fr;
-    gap: 20px; align-items: start;
-  }
-  .song-grid > footer, .song-grid > .hint { grid-column: 1 / -1; }
-  /* Lecteur sur toute la largeur, collé en haut quand la page défile vers la section en cours */
-  .p-transport {
-    grid-column: 1 / -1; grid-row: 1; position: sticky; top: 0; z-index: 10;
-    box-shadow: 0 6px 16px rgb(0 0 0 / 0.08);
-  }
-  .p-sections, .p-tempo { grid-column: 1; }
-  .p-mix { grid-column: 2; grid-row: 2 / span 3; }
+  .app { max-width: 760px; }
+  .p-transport { position: sticky; top: 0; z-index: 10; box-shadow: 0 6px 16px rgb(0 0 0 / 0.08); }
   .panel { padding: 20px; }
 }
 
-@media (prefers-reduced-motion: reduce) { .row, .seg { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .row, .seg { transition: none; }
+  .sheet[open] { animation: none; }
+}
