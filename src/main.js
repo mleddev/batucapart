@@ -435,11 +435,22 @@ function mountSong(root, song, stems, gen) {
   return { player, togglePlay };
 }
 
+// Barre espace = lecture / pause, même si un bouton a le focus (sinon Espace « cliquerait » ce bouton).
+// On la laisse aux champs de saisie et aux fenêtres ouvertes (tempo, instruments).
+function spaceIsForPlayer(e) {
+  if (e.code !== 'Space' || e.ctrlKey || e.metaKey || e.altKey) return false;
+  const t = e.target;
+  if (t.closest?.('dialog[open]')) return false;
+  if (t.isContentEditable || t.matches?.('textarea, select, input:not([type=range])')) return false;
+  return true;
+}
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && e.target === document.body) {
-    e.preventDefault();
-    current?.togglePlay();
-  }
+  if (!spaceIsForPlayer(e)) return;
+  e.preventDefault();
+  if (!e.repeat) current?.togglePlay();
+});
+document.addEventListener('keyup', (e) => {
+  if (spaceIsForPlayer(e)) e.preventDefault();
 });
 
 const select = document.querySelector('#song-select');
