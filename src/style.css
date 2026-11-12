@@ -166,7 +166,7 @@ input[type='range']::-moz-range-thumb {
   background:
     linear-gradient(to right, var(--progress-fill) var(--progress, 0%), var(--surface) var(--progress, 0%)) padding-box,
     linear-gradient(to right, var(--progress-border) var(--progress, 0%), var(--accent) var(--progress, 0%)) border-box;
-  box-shadow: inset 5px 0 0 var(--accent);
+  box-shadow: inset 5px 0 0 var(--progress-border);
   padding-left: 16px;
 }
 .sections button.current .name { color: var(--accent); }
