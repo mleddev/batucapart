@@ -11,6 +11,7 @@ const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(
 
 const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
 const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+const restartIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3v16H5zM20 4.5v15L9 12z"/></svg>';
 
 document.querySelector('#app').innerHTML = `
   <div class="app">
@@ -63,30 +64,36 @@ function mountSong(root, song, stems, gen) {
     section: null, // index de la section choisie
     loop: false,
     seeking: false,
+    pickedInList: false,
   };
 
   root.innerHTML = `
     <section class="panel p-transport" aria-label="Lecture">
       <div class="transport">
-        <button class="play" id="play" aria-label="Lecture">${playIcon}</button>
         <div class="timeline">
-          <input type="range" id="seek" min="0" max="${song.duration.toFixed(3)}" step="0.01" value="0" aria-label="Position" />
-          <div class="times"><span id="now">0:00</span><span>${fmt(song.duration)}</span></div>
+          <!-- Frise du morceau : un segment par section, largeur proportionnelle à sa durée. On y déplace la lecture. -->
+          <div class="map" id="map" role="slider" tabindex="0" aria-label="Position dans le morceau"
+            aria-valuemin="0" aria-valuemax="${Math.round(song.sectionsEnd)}" aria-valuenow="0" aria-valuetext="0:00">
+            ${song.sections
+              .map((s, i) => `<span class="seg k-${s.kind ?? 'groove'}" data-section="${i}" style="flex:${s.bars} 1 0"></span>`)
+              .join('')}
+            <div class="playhead" id="playhead"></div>
+          </div>
+          <div class="times">
+            <span id="now">0:00</span>
+            <ul class="legend" aria-hidden="true">
+              <li class="k-groove">Rythme</li><li class="k-montee">Montée</li><li class="k-break">Break</li>
+            </ul>
+            <span>${fmt(song.duration)}</span>
+          </div>
         </div>
+        <button type="button" class="restart" id="restart" aria-label="Retour au début">${restartIcon}</button>
+        <button type="button" class="play" id="play" aria-label="Lecture">${playIcon}</button>
       </div>
     </section>
 
     <section class="panel p-sections" aria-label="Sections">
       <h2>Sections</h2>
-      <div class="map" id="map" aria-hidden="true">
-        ${song.sections
-          .map((s, i) => `<span class="seg k-${s.kind ?? 'groove'}" data-section="${i}" style="flex:${s.bars} 1 0"></span>`)
-          .join('')}
-        <div class="playhead" id="playhead"></div>
-      </div>
-      <ul class="legend" aria-hidden="true">
-        <li class="k-groove">Rythme</li><li class="k-montee">Montée</li><li class="k-break">Break</li>
-      </ul>
       <ol class="sections" id="strip">
         ${song.sections
           .map(
@@ -136,7 +143,7 @@ function mountSong(root, song, stems, gen) {
 
   const $ = (sel) => root.querySelector(sel);
   const playBtn = $('#play');
-  const seek = $('#seek');
+  const map = $('#map');
   const now = $('#now');
   const strip = $('#strip');
   const playhead = $('#playhead');
@@ -214,27 +221,65 @@ function mountSong(root, song, stems, gen) {
 
   playBtn.addEventListener('click', togglePlay);
 
-  seek.addEventListener('input', () => {
-    state.seeking = true;
-    player.seek(Number(seek.value));
-    now.textContent = fmt(Number(seek.value));
-  });
-  seek.addEventListener('change', () => {
-    state.seeking = false;
+  /** Déplace la lecture. Sortir de la section en boucle arrête la boucle. */
+  function seekTo(seconds) {
+    const target = Math.min(Math.max(seconds, 0), song.sectionsEnd);
+    if (state.loop) {
+      const range = loopRange();
+      if (target < range.start || target >= range.end) {
+        state.loop = false;
+        applyLoop();
+        renderSections();
+      }
+    }
+    player.seek(target);
+  }
+
+  $('#restart').addEventListener('click', () => {
+    seekTo(state.loop ? loopRange().start : song.startAt);
   });
 
-  // La liste (boutons) et la carte du morceau (segments, souris / doigt seulement) choisissent une section.
+  // Frise : cliquer ou glisser (souris ou doigt) pour se déplacer ; flèches du clavier : ±1 mesure.
+  const timeAtX = (clientX) => {
+    const box = map.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (clientX - box.left) / box.width));
+    return song.startAt + ratio * (song.sectionsEnd - song.startAt);
+  };
+  map.addEventListener('pointerdown', (e) => {
+    map.setPointerCapture(e.pointerId);
+    state.seeking = true;
+    seekTo(timeAtX(e.clientX));
+  });
+  map.addEventListener('pointermove', (e) => {
+    if (state.seeking) seekTo(timeAtX(e.clientX));
+  });
+  const endDrag = () => {
+    state.seeking = false;
+  };
+  map.addEventListener('pointerup', endDrag);
+  map.addEventListener('pointercancel', endDrag);
+  map.addEventListener('keydown', (e) => {
+    const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+    if (e.key === 'Home') seekTo(song.startAt);
+    else if (e.key === 'End') seekTo(song.sectionsEnd);
+    else if (step) seekTo(player.position + step * song.barSeconds);
+    else return;
+    e.preventDefault();
+  });
+
+  // Un clic dans la liste choisit une section.
   const onSectionClick = (e) => {
     const btn = e.target.closest('[data-section]');
     if (!btn) return;
     state.section = Number(btn.dataset.section);
+    // La ligne cliquée est déjà sous les yeux : pas de défilement quand elle devient la section en cours.
+    state.pickedInList = state.section !== lastSection;
     applyLoop();
     const start = state.loop ? loopRange().start : song.sections[state.section].start;
     player.seek(start);
     renderSections();
   };
   strip.addEventListener('click', onSectionClick);
-  $('#map').addEventListener('click', onSectionClick);
 
   loopBtn.addEventListener('click', () => {
     if (state.section === null) {
@@ -291,17 +336,43 @@ function mountSong(root, song, stems, gen) {
   player.onEnded = () => setPlaying(false);
 
   // Mise à jour de l'affichage à chaque image
+  let lastSection = null;
   function frame() {
     if (gen !== generation) return;
     const pos = player.position;
-    if (!state.seeking) seek.value = pos;
     now.textContent = fmt(pos);
+    map.setAttribute('aria-valuenow', String(Math.round(pos)));
+    map.setAttribute('aria-valuetext', fmt(pos));
     const span = song.sectionsEnd - song.startAt;
     playhead.style.left = `${Math.min(100, Math.max(0, ((pos - song.startAt) / span) * 100))}%`;
     const currentSection = sectionAt(pos);
     root
       .querySelectorAll('[data-section]')
       .forEach((b) => b.classList.toggle('current', Number(b.dataset.section) === currentSection));
+    // La page suit la section en cours (lecture, frise, clavier), sauf si on vient de la choisir dans la liste.
+    if (currentSection !== lastSection) {
+      if (lastSection !== null && !state.pickedInList) {
+        strip.querySelector(`[data-section="${currentSection}"]`)?.scrollIntoView({
+          block: 'center',
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        });
+      }
+      lastSection = currentSection;
+      state.pickedInList = false;
+    }
+    // Sans boucle, la section choisie se désélectionne dès que la lecture en sort.
+    if (!state.loop && state.section !== null) {
+      const chosen = song.sections[state.section];
+      if (pos >= chosen.end || pos < chosen.start - 0.05) {
+        state.section = null;
+        renderSections();
+        applyLoop();
+      }
+    }
+    // Avancement dans la section en cours : remplit le fond de sa ligne de gauche à droite.
+    const cur = song.sections[currentSection];
+    const progress = Math.min(1, Math.max(0, (pos - cur.start) / (cur.end - cur.start)));
+    strip.style.setProperty('--progress', `${(progress * 100).toFixed(2)}%`);
     requestAnimationFrame(frame);
   }
 
