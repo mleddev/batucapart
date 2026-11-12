@@ -80,8 +80,11 @@ function mountSong(root, song, stems, gen) {
               .join('')}
             <div class="playhead" id="playhead"></div>
           </div>
+          <div class="times">
+            <span id="now">0:00</span>
+            <span>${fmt(song.duration)}</span>
+          </div>
           <div class="controls">
-            <span class="time" id="now">0:00</span>
             <div class="buttons">
               <button type="button" class="round tempo-btn" id="open-tempo" aria-haspopup="dialog" aria-label="Tempo">
                 <span id="tempo-badge">100%</span>
@@ -93,7 +96,6 @@ function mountSong(root, song, stems, gen) {
                 ${mixIcon}<span class="dot" id="mix-dot" hidden></span>
               </button>
             </div>
-            <span class="time end">${fmt(song.duration)}</span>
           </div>
       </div>
     </section>
