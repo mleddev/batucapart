@@ -58,10 +58,7 @@ async function openSong(def) {
 function mountSong(root, song, stems, gen) {
   const player = new Player(ctx, stems, {
     bpm: song.bpm,
-    beatsPerBar: song.beatsPerBar,
     beatOffset: song.beatOffset ?? 0,
-    // Le métronome clique dès le début des fichiers ; le temps fort tombe sur la mesure 1 (`startAt`).
-    barStartBeat: Math.round((song.startAt * song.bpm) / 60),
   });
   const state = {
     section: null, // index de la section choisie

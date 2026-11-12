@@ -7,7 +7,7 @@ export class Player {
   /**
    * @param {AudioContext} ctx
    * @param {{id: string, data: Float32Array}[]} stems
-   * @param {{bpm: number, beatsPerBar: number, beatOffset?: number}} timing
+   * @param {{bpm: number, beatOffset?: number}} timing
    */
   constructor(ctx, stems, timing) {
     this.ctx = ctx;
@@ -26,7 +26,7 @@ export class Player {
     this.metronome = false;
     this.onEnded = null;
     this._buffer = new Float32Array(BLOCK * 2);
-    this._click = { remaining: 0, phase: 0, freq: 1500 };
+    this._click = { remaining: 0, phase: 0, freq: 1500 }; // même clic sur tous les temps (pas d'accent sur le 1)
     this._lastBeat = null;
     // Position "virtuelle" du métronome : avance de `tempo` frames par frame de sortie, sans jamais être
     // réestimée, donc parfaitement régulière. Elle est recalée seulement à la lecture, au déplacement et à la boucle.
@@ -191,7 +191,7 @@ export class Player {
   // Le métronome est produit APRÈS l'étirement : les clics gardent leur forme à tous les tempos.
   // Chaque frame de sortie avance de `tempo` frames dans le morceau (compteur `_metroPos`).
   _mixMetronome(left, right, count) {
-    const { bpm, beatsPerBar, beatOffset, barStartBeat = 0 } = this.timing;
+    const { bpm, beatOffset } = this.timing;
     const beatFrames = (this.sampleRate * 60) / bpm;
     const offsetFrames = beatOffset * this.sampleRate;
     const click = this._click;
@@ -203,8 +203,6 @@ export class Player {
       // Au tout premier instant (lecture lancée pile sur un temps), on joue aussi le clic de ce temps.
       const onBeatStart = this._lastBeat === null && songFrame >= 0 && songFrame - beat * beatFrames < 2;
       if ((onBeatStart || (this._lastBeat !== null && beat !== this._lastBeat)) && songFrame >= 0) {
-        const barBeat = (((beat - barStartBeat) % beatsPerBar) + beatsPerBar) % beatsPerBar;
-        click.freq = barBeat === 0 ? 2200 : 1500;
         click.remaining = clickLength;
         click.phase = 0;
       }
